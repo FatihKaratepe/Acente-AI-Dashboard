@@ -6,14 +6,28 @@ import { Button } from './components/ui/button';
 import { InputGroup, InputGroupAddon, InputGroupInput } from './components/ui/input-group';
 import { UpsertPolicyDrawer } from './components/UpsertPolicyDrawer';
 import { POLICY_OFFERS } from './constants';
-import { columns } from './constants/columns';
+import { getColumns } from './constants/columns';
 import { policyOfferSchema } from './schemas/policy-offer';
 import type { PolicyOffer } from './types';
 
 export const App = () => {
+  const [selectedPolicyOffer, setSelectedPolicyOffer] = useState<PolicyOffer | undefined>(undefined);
   const [policyOffers, setPolicyOffers] = useState<PolicyOffer[]>(POLICY_OFFERS);
   const [search, setSearch] = useState<string>('');
   const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  const columns = useMemo(
+    () =>
+      getColumns({
+        onEdit: (data) => {
+          setSelectedPolicyOffer(data);
+          setIsOpen(true);
+        },
+        onDelete: (data) => console.log(data),
+        onInquire: (data) => console.log(data),
+      }),
+    [],
+  );
 
   const filteredPolicyOffers = useMemo(() => {
     return policyOffers.filter((x) => x.customer.toLowerCase().includes(search));
@@ -46,14 +60,26 @@ export const App = () => {
             </InputGroupAddon>
           </InputGroup>
 
-          <Button variant="outline" onClick={() => setIsOpen(true)}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setIsOpen(true);
+              setSelectedPolicyOffer(undefined);
+            }}
+          >
             <FilePlus />
             Create Policy
           </Button>
         </div>
         <DataTable columns={columns} data={filteredPolicyOffers} />
       </div>
-      <UpsertPolicyDrawer isOpen={isOpen} setIsOpen={setIsOpen} save={onSave} />
+      <UpsertPolicyDrawer
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        save={onSave}
+        selectedPolicyOffer={selectedPolicyOffer}
+      />
+      
     </>
   );
 };

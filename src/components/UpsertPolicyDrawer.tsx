@@ -12,7 +12,7 @@ import { POLICY_OFFER_STATUS, POLICY_OFFER_TYPES } from '@/constants';
 import { policyOfferSchema } from '@/schemas/policy-offer';
 import type { PolicyOffer } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LoaderCircle } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import { useEffect, useRef, useState, type Dispatch, type FC, type SetStateAction } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -27,13 +27,13 @@ interface UpsertPolicyDrawerProps {
 
 export const UpsertPolicyDrawer: FC<UpsertPolicyDrawerProps> = ({ selectedPolicyOffer, isOpen, setIsOpen, save }) => {
   const submitButton = useRef<HTMLButtonElement>(null);
-  const [showCalculate, setShowCalculate] = useState<boolean>(false);
+  const [isCalculatingPremium, setIsCalculatingPremium] = useState<boolean>(false);
 
   const {
     control,
     handleSubmit,
     reset,
-    getValues,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<z.infer<typeof policyOfferSchema>>({
     resolver: zodResolver(policyOfferSchema),
@@ -44,13 +44,24 @@ export const UpsertPolicyDrawer: FC<UpsertPolicyDrawerProps> = ({ selectedPolicy
     },
   });
 
+  const type = watch('type');
+
+  useEffect(() => {
+    if (type) {
+      setIsCalculatingPremium(true);
+      const timer = setTimeout(() => {
+        setIsCalculatingPremium(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [type]);
+
   useEffect(() => {
     if (!selectedPolicyOffer) reset();
     else reset({ ...selectedPolicyOffer });
   }, [selectedPolicyOffer, reset]);
 
   const onSubmit = (data: z.infer<typeof policyOfferSchema>) => {
-    console.log('SUBMIT:', data);
     save({ ...data, premium: `$${new Intl.NumberFormat('en-US').format(Number(data.premium))}` });
     close();
   };
@@ -145,6 +156,8 @@ export const UpsertPolicyDrawer: FC<UpsertPolicyDrawerProps> = ({ selectedPolicy
                     <FieldLabel htmlFor="form-rhf-premium">Premium</FieldLabel>
                     <Input
                       {...field}
+                      value={isCalculatingPremium ? 'Calculating...' : field.value}
+                      disabled={isCalculatingPremium}
                       pattern="[0-9]*"
                       onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ''))}
                       id="form-rhf-premium"
@@ -169,8 +182,7 @@ export const UpsertPolicyDrawer: FC<UpsertPolicyDrawerProps> = ({ selectedPolicy
             disabled={!!Object.keys(errors).length || isSubmitting}
             onClick={() => submitButton.current?.click()}
           >
-            {/* <Button className="w-full" onClick={() => console.log(getValues())}> */}
-            Save {isSubmitting && <LoaderCircle className="animate-spin" />}
+            {isSubmitting && <Spinner data-icon="inline-start" />} Save 
           </Button>
         </DrawerFooter>
       </DrawerContent>
