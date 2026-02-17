@@ -1,0 +1,179 @@
+import { Button } from '@/components/ui/button';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { POLICY_OFFER_STATUS, POLICY_OFFER_TYPES } from '@/constants';
+import { policyOfferSchema } from '@/schemas/policy-offer';
+import type { PolicyOffer } from '@/types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { LoaderCircle } from 'lucide-react';
+import { useEffect, useRef, useState, type Dispatch, type FC, type SetStateAction } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Input } from './ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+interface UpsertPolicyDrawerProps {
+  selectedPolicyOffer?: PolicyOffer;
+  isOpen: boolean;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
+  save: (data: z.infer<typeof policyOfferSchema>) => void;
+}
+
+export const UpsertPolicyDrawer: FC<UpsertPolicyDrawerProps> = ({ selectedPolicyOffer, isOpen, setIsOpen, save }) => {
+  const submitButton = useRef<HTMLButtonElement>(null);
+  const [showCalculate, setShowCalculate] = useState<boolean>(false);
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    getValues,
+    formState: { errors, isSubmitting },
+  } = useForm<z.infer<typeof policyOfferSchema>>({
+    resolver: zodResolver(policyOfferSchema),
+    mode: 'all',
+    defaultValues: {
+      customer: '',
+      premium: '',
+    },
+  });
+
+  useEffect(() => {
+    if (!selectedPolicyOffer) reset();
+    else reset({ ...selectedPolicyOffer });
+  }, [selectedPolicyOffer, reset]);
+
+  const onSubmit = (data: z.infer<typeof policyOfferSchema>) => {
+    console.log('SUBMIT:', data);
+    save({ ...data, premium: `$${new Intl.NumberFormat('en-US').format(Number(data.premium))}` });
+    close();
+  };
+
+  const close = () => {
+    reset();
+    setIsOpen(false);
+  };
+
+  return (
+    <Drawer open={isOpen} direction="right" onOpenChange={setIsOpen}>
+      <DrawerContent onEscapeKeyDown={() => close()} onInteractOutside={(e) => e.preventDefault()}>
+        <DrawerHeader>
+          <DrawerDescription>Policy Offer</DrawerDescription>
+          <DrawerTitle>{selectedPolicyOffer ? `Update - ID: ${selectedPolicyOffer.id}` : 'Create'}</DrawerTitle>
+        </DrawerHeader>
+        <div className="p-4 overflow-auto">
+          <form id="form-rhf-demo" onSubmit={handleSubmit(onSubmit)}>
+            <FieldGroup>
+              <Controller
+                name="customer"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="form-rhf-customer">Customer</FieldLabel>
+                    <Input
+                      {...field}
+                      id="form-rhf-customer"
+                      aria-invalid={fieldState.invalid}
+                      placeholder="Customer"
+                      autoComplete="off"
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="status"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="form-rhf-status">Status</FieldLabel>
+                    <Select name={field.name} value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id="form-rhf-status" aria-invalid={fieldState.invalid} className="min-w-30">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        {POLICY_OFFER_STATUS.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="type"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="form-rhf-type">Type</FieldLabel>
+                    <Select
+                      name={field.name}
+                      value={field.value}
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                      }}
+                    >
+                      <SelectTrigger id="form-rhf-type" aria-invalid={fieldState.invalid} className="min-w-30">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        {POLICY_OFFER_TYPES.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="premium"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="form-rhf-premium">Premium</FieldLabel>
+                    <Input
+                      {...field}
+                      pattern="[0-9]*"
+                      onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ''))}
+                      id="form-rhf-premium"
+                      aria-invalid={fieldState.invalid}
+                      placeholder="Premium"
+                      autoComplete="off"
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+            </FieldGroup>
+            <button ref={submitButton} type="submit" hidden />
+          </form>
+        </div>
+        <DrawerFooter className="grid grid-cols-2">
+          <Button variant="outline" className="w-full" onClick={() => close()}>
+            Close
+          </Button>
+          <Button
+            className="w-full"
+            disabled={!!Object.keys(errors).length || isSubmitting}
+            onClick={() => submitButton.current?.click()}
+          >
+            {/* <Button className="w-full" onClick={() => console.log(getValues())}> */}
+            Save {isSubmitting && <LoaderCircle className="animate-spin" />}
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  );
+};
