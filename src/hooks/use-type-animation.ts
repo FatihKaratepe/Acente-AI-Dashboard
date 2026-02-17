@@ -7,18 +7,24 @@ interface UseTypewriterProps {
 
 export function useTypewriter({ text, speed = 400 }: UseTypewriterProps) {
   const [displayedText, setDisplayedText] = useState('');
+  const [isComplete, setIsComplete] = useState(false);
 
   const words = useMemo(() => text.split(' '), [text]);
 
   useEffect(() => {
     let index = 0;
     setDisplayedText('');
+    setIsComplete(false);
 
     const interval = setInterval(() => {
       if (index < words.length) {
-        setDisplayedText((prev) => prev + words[index] + ' ');
+        const word = words[index];
+        if (word !== undefined) {
+          setDisplayedText((prev) => prev + (index === 0 ? '' : ' ') + word);
+        }
         index++;
       } else {
+        setIsComplete(true);
         clearInterval(interval);
       }
     }, speed);
@@ -26,5 +32,5 @@ export function useTypewriter({ text, speed = 400 }: UseTypewriterProps) {
     return () => clearInterval(interval);
   }, [words, speed]);
 
-  return displayedText;
+  return { displayedText, isComplete };
 }

@@ -186,7 +186,7 @@ export const UpsertPolicyDrawer: FC<UpsertPolicyDrawerProps> = ({ selectedPolicy
             disabled={!!Object.keys(errors).length || isSubmitting}
             onClick={() => submitButton.current?.click()}
           >
-            {isSubmitting && <Spinner data-icon="inline-start" />} Save 
+            {isSubmitting && <Spinner data-icon="inline-start" />} {selectedPolicyOffer ? 'Save' : 'Create'} 
           </Button>
         </DrawerFooter>
       </DrawerContent>

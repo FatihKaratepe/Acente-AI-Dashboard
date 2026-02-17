@@ -41,7 +41,7 @@ export const PolicyActions = ({ policy, onEdit, onDelete, onInquire }: PolicyAct
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the policy for {policy.customer}.
+              This action cannot be undone. This will permanently <b>delete</b> the policy for <b>{policy.customer}</b>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

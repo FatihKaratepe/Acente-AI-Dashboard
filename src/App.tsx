@@ -1,5 +1,5 @@
 import { FilePlus, Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { z } from 'zod';
 
 import { useCreatePolicy, useDeletePolicy, usePolicyOffers, useUpdatePolicy } from './api';
@@ -7,6 +7,7 @@ import { DataTable } from './components/DataTable';
 import { Button } from './components/ui/button';
 import { InputGroup, InputGroupAddon, InputGroupInput } from './components/ui/input-group';
 import { UpsertPolicyDrawer } from './components/UpsertPolicyDrawer';
+import { MioxBot, type MioxBotHandle } from './components/MioxBot';
 import { getColumns } from './constants/columns';
 import { policyOfferSchema } from './schemas/policy-offer';
 import type { PolicyOffer } from './types';
@@ -18,6 +19,7 @@ export const App = () => {
   const [search, setSearch] = useState<string>('');
   const debouncedSearch = useDebounce(search, 300);
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const mioxBotRef = useRef<MioxBotHandle>(null);
 
   const { data: policyOffers = [], isLoading: isQueryLoading } = usePolicyOffers(debouncedSearch);
   const { mutate: createMutation, isPending: isCreating } = useCreatePolicy();
@@ -34,7 +36,10 @@ export const App = () => {
           setIsOpen(true);
         },
         onDelete: (data) => deleteMutation(data.id),
-        onInquire: (data) => console.log(data),
+        onInquire: (data) => {
+            mioxBotRef.current?.open();
+            mioxBotRef.current?.setInput(`I have a question about ${data.customer}'s ${data.type} policy`);
+        },
       }),
     [deleteMutation],
   );
@@ -78,6 +83,7 @@ export const App = () => {
         save={onSave}
         selectedPolicyOffer={selectedPolicyOffer}
       />
+      <MioxBot ref={mioxBotRef} />
       
     </>
   );

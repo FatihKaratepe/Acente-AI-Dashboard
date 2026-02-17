@@ -1,6 +1,15 @@
 import type { PolicyOffer } from '@/types';
 import { PolicyActions } from '@/components/PolicyActions';
 import { createColumnHelper } from '@tanstack/react-table';
+import { 
+  Car, 
+  HeartPulse, 
+  Home, 
+  Plane, 
+  CheckCircle2, 
+  CreditCard, 
+  Clock 
+} from 'lucide-react';
 
 const columnHelper = createColumnHelper<PolicyOffer>();
 
@@ -20,6 +29,21 @@ export const getColumns = ({
   columnHelper.accessor('type', {
     header: 'Type',
     size: 50,
+    cell: ({ getValue }) => {
+      const type = getValue();
+      switch (type) {
+        case 'Auto':
+          return <div className="flex items-center gap-2"><Car className="h-4 w-4 text-blue-500" /> Auto</div>;
+        case 'Health':
+          return <div className="flex items-center gap-2"><HeartPulse className="h-4 w-4 text-red-500" /> Health</div>;
+        case 'Home':
+          return <div className="flex items-center gap-2"><Home className="h-4 w-4 text-orange-500" /> Home</div>;
+        case 'Travel':
+          return <div className="flex items-center gap-2"><Plane className="h-4 w-4 text-sky-500" /> Travel</div>;
+        default:
+          return type;
+      }
+    }
   }),
   columnHelper.accessor('premium', {
     header: 'Premium',
@@ -33,11 +57,11 @@ export const getColumns = ({
 
       switch (status) {
         case 'Approved':
-          return <span className="text-green-600">Approved</span>;
+          return <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-600" /><span>Approved</span></div>;
         case 'Payment Required':
-          return <span className="text-red-600">Payment Required</span>;
+          return <div className="flex items-center gap-2"><CreditCard className="h-4 w-4 text-red-600" /><span>Payment Required</span></div>;
         case 'Pending':
-          return <span className="text-yellow-600">Pending</span>;
+          return <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-yellow-600" /><span>Pending</span></div>;
         default:
           return null;
       }
