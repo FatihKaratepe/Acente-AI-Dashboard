@@ -1,13 +1,13 @@
 import { FilePlus, Search } from 'lucide-react';
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { z } from 'zod';
 
 import { useCreatePolicy, useDeletePolicy, usePolicyOffers, useUpdatePolicy } from './api';
 import { DataTable } from './components/DataTable';
+import { MioxBot, type MioxBotHandle } from './components/MioxBot';
 import { Button } from './components/ui/button';
 import { InputGroup, InputGroupAddon, InputGroupInput } from './components/ui/input-group';
 import { UpsertPolicyDrawer } from './components/UpsertPolicyDrawer';
-import { MioxBot, type MioxBotHandle } from './components/MioxBot';
 import { getColumns } from './constants/columns';
 import { policyOfferSchema } from './schemas/policy-offer';
 import type { PolicyOffer } from './types';
@@ -30,6 +30,7 @@ export const App = () => {
 
   const columns = useMemo(
     () =>
+      // eslint-disable-next-line react-hooks/refs
       getColumns({
         onEdit: (data) => {
           setSelectedPolicyOffer(data);
@@ -37,8 +38,8 @@ export const App = () => {
         },
         onDelete: (data) => deleteMutation(data.id),
         onInquire: (data) => {
-            mioxBotRef.current?.open();
-            mioxBotRef.current?.setInput(`I have a question about ${data.customer}'s ${data.type} policy`);
+          mioxBotRef.current?.open();
+          mioxBotRef.current?.setInput(`I have a question about ${data.customer}'s ${data.type} policy`);
         },
       }),
     [deleteMutation],
@@ -58,7 +59,7 @@ export const App = () => {
       <div className="flex flex-col gap-6">
         <div className="flex justify-between gap-6">
           <InputGroup className="w-auto">
-            <InputGroupInput onChange={(e) => setSearch(e.target.value)} placeholder="Search by customer..." />
+            <InputGroupInput onChange={(e) => setSearch(e.target.value.trim())} placeholder="Search by customer..." />
             <InputGroupAddon>
               <Search />
             </InputGroupAddon>
@@ -84,7 +85,6 @@ export const App = () => {
         selectedPolicyOffer={selectedPolicyOffer}
       />
       <MioxBot ref={mioxBotRef} />
-      
     </>
   );
 };

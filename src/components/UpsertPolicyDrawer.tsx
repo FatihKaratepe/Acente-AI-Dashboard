@@ -8,11 +8,11 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Spinner } from '@/components/ui/spinner';
 import { POLICY_OFFER_STATUS, POLICY_OFFER_TYPES } from '@/constants';
 import { policyOfferSchema } from '@/schemas/policy-offer';
 import type { PolicyOffer } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Spinner } from '@/components/ui/spinner';
 import { useEffect, useRef, useState, type Dispatch, type FC, type SetStateAction } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -186,7 +186,7 @@ export const UpsertPolicyDrawer: FC<UpsertPolicyDrawerProps> = ({ selectedPolicy
             disabled={!!Object.keys(errors).length || isSubmitting}
             onClick={() => submitButton.current?.click()}
           >
-            {isSubmitting && <Spinner data-icon="inline-start" />} {selectedPolicyOffer ? 'Save' : 'Create'} 
+            {isSubmitting && <Spinner data-icon="inline-start" />} {selectedPolicyOffer ? 'Save' : 'Create'}
           </Button>
         </DrawerFooter>
       </DrawerContent>

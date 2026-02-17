@@ -8,12 +8,7 @@ interface ThemeTogglerProps extends React.ComponentPropsWithoutRef<'button'> {
   onClick?: () => void;
 }
 
-export const ThemeToggler = ({
-  className,
-  duration = 500,
-  onClick,
-  ...props
-}: ThemeTogglerProps) => {
+export const ThemeToggler = ({ className, duration = 500, onClick, ...props }: ThemeTogglerProps) => {
   const [isDark, setIsDark] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
 
@@ -33,59 +28,45 @@ export const ThemeToggler = ({
   const toggleTheme = useCallback(async () => {
     if (!buttonRef.current) return;
 
-    const supportsTransition =
-      typeof document !== 'undefined' &&
-      'startViewTransition' in document;
+    const supportsTransition = typeof document !== 'undefined' && 'startViewTransition' in document;
 
     if (!supportsTransition) {
-      setIsDark(prev => !prev);
+      setIsDark((prev) => !prev);
       onClick?.();
       return;
     }
 
-    const transition = (document as any).startViewTransition(() => {
+    const transition = document.startViewTransition?.(() => {
       flushSync(() => {
-        setIsDark(prev => !prev);
+        setIsDark((prev) => !prev);
       });
     });
 
-    await transition.ready;
+    await transition?.ready;
 
-    const { top, left, width, height } =
-      buttonRef.current.getBoundingClientRect();
+    const { top, left, width, height } = buttonRef.current.getBoundingClientRect();
 
     const x = left + width / 2;
     const y = top + height / 2;
 
-    const maxRadius = Math.hypot(
-      Math.max(left, window.innerWidth - left),
-      Math.max(top, window.innerHeight - top)
-    );
+    const maxRadius = Math.hypot(Math.max(left, window.innerWidth - left), Math.max(top, window.innerHeight - top));
 
     document.documentElement.animate(
       {
-        clipPath: [
-          `circle(0px at ${x}px ${y}px)`,
-          `circle(${maxRadius}px at ${x}px ${y}px)`
-        ]
+        clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${maxRadius}px at ${x}px ${y}px)`],
       },
       {
         duration,
         easing: 'ease-in-out',
-        pseudoElement: '::view-transition-new(root)'
-      }
+        pseudoElement: '::view-transition-new(root)',
+      },
     );
 
     onClick?.();
   }, [duration, onClick]);
 
   return (
-    <button
-      ref={buttonRef}
-      onClick={toggleTheme}
-      className={cn('relative', className)}
-      {...props}
-    >
+    <button ref={buttonRef} onClick={toggleTheme} className={cn('relative', className)} {...props}>
       {isDark ? <Sun /> : <Moon />}
     </button>
   );

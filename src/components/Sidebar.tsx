@@ -9,6 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { Logo } from './Logo';
 
 export const SidebarComponent = () => {
   const data = {
@@ -35,7 +36,9 @@ export const SidebarComponent = () => {
 
   return (
     <Sidebar>
-      <SidebarHeader>Logo</SidebarHeader>
+      <SidebarHeader>
+        <Logo />
+      </SidebarHeader>
       <SidebarContent>
         {data.navMain.map((item) => (
           <SidebarGroup key={item.title}>

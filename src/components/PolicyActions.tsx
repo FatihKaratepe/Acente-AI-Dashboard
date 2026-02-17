@@ -1,4 +1,3 @@
-import type { PolicyOffer } from '@/types';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,6 +11,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import type { PolicyOffer } from '@/types';
 import { Info, Pencil, Trash2 } from 'lucide-react';
 
 interface PolicyActionsProps {
@@ -46,10 +46,7 @@ export const PolicyActions = ({ policy, onEdit, onDelete, onInquire }: PolicyAct
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700"
-              onClick={() => onDelete(policy)}
-            >
+            <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={() => onDelete(policy)}>
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

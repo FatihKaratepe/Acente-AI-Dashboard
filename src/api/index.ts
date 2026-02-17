@@ -1,8 +1,8 @@
 import { POLICY_OFFERS } from '@/constants';
+import { wait } from '@/helpers/wait';
 import type { PolicyOffer } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 let mockPolicyOffers = [...POLICY_OFFERS];
 
