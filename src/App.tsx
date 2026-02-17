@@ -1,20 +1,30 @@
 import { FilePlus, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { z } from 'zod';
+
+import { useCreatePolicy, useDeletePolicy, usePolicyOffers, useUpdatePolicy } from './api';
 import { DataTable } from './components/DataTable';
 import { Button } from './components/ui/button';
 import { InputGroup, InputGroupAddon, InputGroupInput } from './components/ui/input-group';
 import { UpsertPolicyDrawer } from './components/UpsertPolicyDrawer';
-import { POLICY_OFFERS } from './constants';
 import { getColumns } from './constants/columns';
 import { policyOfferSchema } from './schemas/policy-offer';
 import type { PolicyOffer } from './types';
 
+import { useDebounce } from './hooks/use-debounce';
+
 export const App = () => {
   const [selectedPolicyOffer, setSelectedPolicyOffer] = useState<PolicyOffer | undefined>(undefined);
-  const [policyOffers, setPolicyOffers] = useState<PolicyOffer[]>(POLICY_OFFERS);
   const [search, setSearch] = useState<string>('');
+  const debouncedSearch = useDebounce(search, 300);
   const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  const { data: policyOffers = [], isLoading: isQueryLoading } = usePolicyOffers(debouncedSearch);
+  const { mutate: createMutation, isPending: isCreating } = useCreatePolicy();
+  const { mutate: updateMutation, isPending: isUpdating } = useUpdatePolicy();
+  const { mutate: deleteMutation, isPending: isDeleting } = useDeletePolicy();
+
+  const isLoading = isQueryLoading || isCreating || isUpdating || isDeleting;
 
   const columns = useMemo(
     () =>
@@ -23,30 +33,19 @@ export const App = () => {
           setSelectedPolicyOffer(data);
           setIsOpen(true);
         },
-        onDelete: (data) => console.log(data),
+        onDelete: (data) => deleteMutation(data.id),
         onInquire: (data) => console.log(data),
       }),
-    [],
+    [deleteMutation],
   );
 
-  const filteredPolicyOffers = useMemo(() => {
-    return policyOffers.filter((x) => x.customer.toLowerCase().includes(search));
-  }, [search, policyOffers]);
-
   const onSave = (data: z.infer<typeof policyOfferSchema>) => {
-    setPolicyOffers((prev) => {
-      if (data.id) {
-        return prev.map((offer) => (offer.id === data.id ? { ...offer, ...data } : offer));
-      }
-
-      return [
-        ...prev,
-        {
-          ...data,
-          id: prev.length ? String(Math.max(...prev.map((o) => Number(o.id))) + 1) : '0',
-        },
-      ];
-    });
+    if (data.id) {
+      updateMutation(data as PolicyOffer);
+    } else {
+      createMutation(data as PolicyOffer);
+    }
+    setIsOpen(false);
   };
 
   return (
@@ -63,15 +62,15 @@ export const App = () => {
           <Button
             variant="outline"
             onClick={() => {
-              setIsOpen(true);
               setSelectedPolicyOffer(undefined);
+              setIsOpen(true);
             }}
           >
             <FilePlus />
             Create Policy
           </Button>
         </div>
-        <DataTable columns={columns} data={filteredPolicyOffers} />
+        <DataTable columns={columns} data={policyOffers} isLoading={isLoading} />
       </div>
       <UpsertPolicyDrawer
         isOpen={isOpen}

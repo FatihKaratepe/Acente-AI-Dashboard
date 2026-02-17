@@ -33,7 +33,6 @@ export const UpsertPolicyDrawer: FC<UpsertPolicyDrawerProps> = ({ selectedPolicy
     control,
     handleSubmit,
     reset,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<z.infer<typeof policyOfferSchema>>({
     resolver: zodResolver(policyOfferSchema),
@@ -41,24 +40,23 @@ export const UpsertPolicyDrawer: FC<UpsertPolicyDrawerProps> = ({ selectedPolicy
     defaultValues: {
       customer: '',
       premium: '',
+      type: undefined,
+      status: undefined,
     },
   });
 
-  const type = watch('type');
-
-  useEffect(() => {
-    if (type) {
+  const onTypeChange = (value: string) => {
+    if (value) {
       setIsCalculatingPremium(true);
-      const timer = setTimeout(() => {
+      setTimeout(() => {
         setIsCalculatingPremium(false);
       }, 500);
-      return () => clearTimeout(timer);
     }
-  }, [type]);
+  };
 
   useEffect(() => {
     if (!selectedPolicyOffer) reset();
-    else reset({ ...selectedPolicyOffer });
+    else reset({ ...selectedPolicyOffer, premium: selectedPolicyOffer.premium.replace('$', '').replace(/,/g, '') });
   }, [selectedPolicyOffer, reset]);
 
   const onSubmit = (data: z.infer<typeof policyOfferSchema>) => {
@@ -67,7 +65,12 @@ export const UpsertPolicyDrawer: FC<UpsertPolicyDrawerProps> = ({ selectedPolicy
   };
 
   const close = () => {
-    reset();
+    reset({
+      customer: '',
+      premium: '',
+      type: undefined,
+      status: undefined,
+    });
     setIsOpen(false);
   };
 
@@ -75,8 +78,8 @@ export const UpsertPolicyDrawer: FC<UpsertPolicyDrawerProps> = ({ selectedPolicy
     <Drawer open={isOpen} direction="right" onOpenChange={setIsOpen}>
       <DrawerContent onEscapeKeyDown={() => close()} onInteractOutside={(e) => e.preventDefault()}>
         <DrawerHeader>
-          <DrawerDescription>Policy Offer</DrawerDescription>
-          <DrawerTitle>{selectedPolicyOffer ? `Update - ID: ${selectedPolicyOffer.id}` : 'Create'}</DrawerTitle>
+          <DrawerDescription>{selectedPolicyOffer ? 'Edit' : 'Create'}</DrawerDescription>
+          <DrawerTitle>Policy Offer</DrawerTitle>
         </DrawerHeader>
         <div className="p-4 overflow-auto">
           <form id="form-rhf-demo" onSubmit={handleSubmit(onSubmit)}>
@@ -131,6 +134,7 @@ export const UpsertPolicyDrawer: FC<UpsertPolicyDrawerProps> = ({ selectedPolicy
                       value={field.value}
                       onValueChange={(val) => {
                         field.onChange(val);
+                        onTypeChange(val);
                       }}
                     >
                       <SelectTrigger id="form-rhf-type" aria-invalid={fieldState.invalid} className="min-w-30">
